@@ -3,77 +3,253 @@ import {
   AppRegistry,
   StyleSheet,
   Text,
-  View
+  View,
+  Image
 } from 'react-native';
 
-import { NativeRouter, Route, Link } from 'react-router-native'
-import Profile from './components/Profile'
-import Calendar from './components/Calendar'
-import Log from './components/Log'
+import { NativeRouter, Route, Link, Redirect } from 'react-router-native'
+import AllProfiles from './components/AllProfiles'
+import NewProfile from './components/NewProfile'
+import EditProfile from './components/EditProfile'
+import ReactCalendar from './components/Calendar'
+import LogDose from './components/LogDose'
 import About from './components/About'
 import styles from './styles'
+import SignIn from './components/SignIn'
+import UserModel from './models/UserModel'
+import SignOut from './components/SignOut'
+import STORE from './store'
+import Registration from './components/Registration'
+import NewLogDose from './components/NewLogDose'
+import Home from './components/Home'
+import ACTIONS from './actions/Actions'
 
-class Home extends Component {
-  render(){
-    return <Text style={styles.header}>Home</Text>
-  }
-}
 
-export default class halfLifeMobile extends Component {
-  render() {
+var HalfLifeMobile = React.createClass({
+  getInitialState: function(){
+      return {
+        currentUser: null,
+        currentProfile: null,
+        profiles: [],
+        redirectTo: false
+      }
+  },
+
+  componentWillMount: function(){
+    STORE.on('dataUpdated', () => {
+        this.setState({
+          currentUser: STORE.data.currentUser,
+          currentProfile: STORE.data.currentProfile,
+          profiles: STORE.data.profiles,
+          redirectTo: STORE.data.redirectTo
+        })
+      })
+  },
+
+  render: function(){
+    if (!!!this.state.currentUser){
+      return this.renderSignInPage()
+    }
+    if (!!!this.state.currentProfile){
+      return this.renderSelectProfile()
+    }
+    return this.renderSignedIn()
+  },
+
+  renderSignInPage: function(){
     return (
       <NativeRouter>
-        <View style={styles.container}>
-          <View style={styles.nav}>
-          <Link
-           to="/"
-           underlayColor='#f0f4f7'
-           style={styles.navItem}>
-             <Text>Home</Text>
-         </Link>
-         <Link
-           to="/calendar"
-           underlayColor='#f0f4f7'
-           style={styles.navItem} >
-             <Text>Calendar</Text>
-         </Link>
-         <Link
-           to="/log"
-           underlayColor='#f0f4f7'
-           style={styles.navItem} >
-             <Text>Log</Text>
-         </Link>
-         <Link
-           to="/profile"
-           underlayColor='#f0f4f7'
-           style={styles.navItem} >
-             <Text>Profile</Text>
-         </Link>
-         <Link
-           to="/about"
-           underlayColor='#f0f4f7'
-           style={styles.navItem}>
-             <Text>About</Text>
-         </Link>
-         
+           <View style={styles.routes}>
+              <Route exact path="/" render={() => {
+              return <SignIn 
+                        currentProfile={this.state.currentProfile} 
+                        profiles={this.state.profiles}
+                        currentUser={this.state.currentUser}  />
+            }}/>
+              <Route path="/sign-up" render={() => {
+              return <Registration 
+                        currentProfile={this.state.currentProfile} 
+                        profiles={this.state.profiles}
+                        currentUser={this.state.currentUser}  />
+            }}/>
+
+             <Route path="/signout" render={() => {
+              return <Redirect to={{
+                        pathname: "/"
+                      }}/>
+            }}/>
+
+            </View>
+      </NativeRouter>
+    )
+  },
+
+
+
+  renderSelectProfile: function(){
+    return (
+      <NativeRouter>
+        <View style={styles.mainContainer}>
+            <View style={styles.topNav}>
+            </View>
+
+           <View style={styles.routes}>
+              <Route exact path="/" render={() => {
+              return <AllProfiles 
+                        currentProfile={this.state.currentProfile} 
+                        profiles={this.state.profiles}
+                        currentUser={this.state.currentUser}  />
+            }}/>
+              <Route path="/profiles/new" render={() => {
+              return <NewProfile 
+                        currentProfile={this.state.currentProfile} 
+                        profiles={this.state.profiles}
+                        currentUser={this.state.currentUser}  />
+            }}/>
+            </View>
+
+            <View>
+            </View>
+        </View>
+      </NativeRouter>
+    )
+  },
+
+  renderRedirect: function(){
+    ACTIONS.clearRedirection()  
+
+    return (
+      <Redirect to={{
+          pathname: "/"
+        }}/>
+    )
+  },
+
+  renderSignedIn: function() {
+
+    var whatToRender = null
+
+    if (this.state.redirectTo !== false) {
+      whatToRender = this.renderRedirect()
+    } else {
+      whatToRender = this.renderMainApp()
+    }
+    return (
+      <NativeRouter>
+        {whatToRender}
+      </NativeRouter>
+    )
+  },
+
+  renderMainApp: function() {
+
+    return (
+      <View style={styles.mainContainer}>
+          <View style={styles.topNav}>
+            <Link to="/profiles"><Text style={styles.titleText}>{this.state.currentProfile.profileName}</Text></Link>
+          </View>
+          <View style={styles.routes}>
+            <Route exact path="/" render={() => {
+              return <Home 
+                        currentProfile={this.state.currentProfile} 
+                        profiles={this.state.profiles}
+                        currentUser={this.state.currentUser}  />
+            }}/>
+            <Route path="/calendar" render={() => {
+              return <ReactCalendar
+                        currentProfile={this.state.currentProfile}
+                        profiles={this.state.profiles}
+                        currentUser={this.state.currentUser} />
+            }}/>
+            <Route exact path="/profiles" render={() => {
+              return <AllProfiles
+                        currentProfile={this.state.currentProfile}
+                        profiles={this.state.profiles}
+                        currentUser={this.state.currentUser} />
+            }}/>
+            <Route exact path="/profile/edit" render={() => {
+              return <EditProfile
+                        currentProfile={this.state.currentProfile}
+                        profiles={this.state.profiles}
+                        currentUser={this.state.currentUser} />
+            }}/>
+            <Route path="/profiles/new" render={() => {
+              return <NewProfile 
+                        currentProfile={this.state.currentProfile} 
+                        profiles={this.state.profiles}
+                        currentUser={this.state.currentUser}  />
+             }}/>           
+            <Route exact path="/logdose" render={() => {
+              return <LogDose 
+                        currentProfile={this.state.currentProfile}
+                        profiles={this.state.profiles}
+                        currentUser={this.state.currentUser} />
+            }}/>
+            <Route path="/logdose/new" render={() => {
+              return <NewLogDose
+                        currentProfile={this.state.currentProfile}
+                        profiles={this.state.profiles}
+                        currentUser={this.state.currentUser} />
+            }}/>
+            <Route path="/about" render={() => {
+              return <About 
+                        currentProfile={this.state.currentProfile}
+                        profiles={this.state.profiles}
+                        currentUser={this.state.currentUser} />
+            }}/>
+            <Route path="/signout" render={() => {
+              return <SignOut
+                        currentProfile={this.state.currentProfile}
+                        profiles={this.state.profiles}
+                        currentUser={this.state.currentUser} />
+            }}/>
           </View>
 
-          <Route exact path="/" component={Home}/>
-          <Route path="/calendar" component={Calendar}/>
-          <Route path="/log" component={Log}/>
-          <Route path="/profile" component={Profile}/>
-          <Route path="/about" component={About}/>
-          
+
+          <View style={styles.nav}>
+           <Link
+             to="/profile/edit"
+             underlayColor='#f0f4f7'
+             style={styles.navItem}>
+             <Image source={ require("./images/profile.png")} style={styles.navImage} />
+           </Link>
+
+           <Link
+             to="/logdose"
+             underlayColor='#f0f4f7'
+             style={styles.navItem}>
+              <Image source={ require("./images/log.png")} style={styles.navImage} />
+           </Link>
+
+           <Link
+             to="/"
+             underlayColor='#f0f4f7'
+             style={styles.navItem}>
+             <Image source={ require("./images/percent.png")} style={styles.navImagePercent} />
+           </Link>
+
+           <Link
+             to="/about"
+             underlayColor='#f0f4f7'
+             style={styles.navItem}>
+              <Image source={ require("./images/about.png")} style={styles.navImage} />
+           </Link>
+
+            <Link
+             to="/signout"
+             underlayColor='#f0f4f7'
+             style={styles.navItem}>
+              <Image source={ require("./images/signout.png")} style={styles.navImage} />
+           </Link>
+          </View>
 
         </View>
-
-      </NativeRouter>
     );
   }
-}
+})
 
 
 
-AppRegistry.registerComponent('halfLifeMobile', () => halfLifeMobile);
+AppRegistry.registerComponent('halfLifeMobile', () => HalfLifeMobile);
 
 

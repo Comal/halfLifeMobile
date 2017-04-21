@@ -6,22 +6,36 @@ import {
   View
 } from 'react-native';
 import styles from './../styles';
-import Calendar from 'react-calendar';
+import Calendar from 'react-native-calendar';
 
-class ReactCalendar extends Component {
-  render(){
+var ReactCalendar = React.createClass({
+  render: function(){
+  	// var Schedule = () => {
+  	// 	var customStyle = {
+	  // 		currentDayCircle: {
+	  // 			backgroundColor: '#F4F4F4',
+	  // 		}
+	  // 		hasEventCircle: {
+	  // 			backgroundColor: '#3EB7FE',
+	  // 		},
+	  // 		title: {
+	  // 			color: '#E9383B',
+	  // 		}
+	  // 	}
+  	// }
     return <Calendar
   				currentMonth={'2017-04-01'}       
-  				customStyle={{day: {fontSize: 15, textAlign: 'center'}}}
-  				eventDates={['2017-04-01', '2017-04-03', '2017-04-05']}                    
+  				eventDates={['2017-04-01', '2017-04-03', '2017-04-05', '2017-04-07']}                    
   				showControls={true}               
   				showEventIndicators={true}        
   				startDate={'2017-04-01'}          
   				titleFormat={'MMMM YYYY'}         
   				today={'2017-04-06'}              
-  				weekStart={1} 
+  				weekStart={0}
+          
+          
 			/>
   }
-}
+})
 
 export default ReactCalendar
